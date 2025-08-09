@@ -98,7 +98,7 @@ fun generateSampleEvents(): List<Event> {
 
 ## Time Spent
 
-~4 hours initial implementation + ~2 hours for refactor & cleanup.
+~3 hours initial implementation + ~1 hour for refactor & cleanup.
 
 ---
 
