@@ -1,56 +1,129 @@
-# Airtable timeline assignment
+# Timeline App
 
-## Expected implementation time:
+## Overview
 
-4 hours
+This app visualizes events on a vertical timeline with **compact lanes** and **month/day grouping
+**.  
+Events are displayed as single, continuous blocks across their date range, without gaps between
+days.  
+The left rail shows sticky month and day headers, and the right pane displays the event blocks in
+horizontal lanes.  
+Both sides scroll **synchronously**.
 
-## High level objective:
+---
 
-Design and implement an app for visualizing events on a timeline.
+## Features
 
-## Details:
+- **Vertical, calendar-like timeline**
+    - Sticky headers for months and days
+    - Each month as a separate section
+- **Compact lane packing**
+    - Events that don’t overlap share lanes
+- **Single-block events**
+    - No daily slicing; events stretch continuously from start to end
+- **Bi-directional scroll sync**
+    - Left (rail) and right (event plane) stay aligned
+- **Horizontal scroll per month**
+    - For wide event layouts
+- **Dynamic event colors**
+    - Background color based on event duration (short = cooler colors, long = warmer colors)
 
-The timeline app will be used to display a number of events. Each event has at least 3 main pieces of information - the name,
-the start date, and the end date. The events dates could overlap. The size of the event in the timeline should be
-proportional to the number of days the event lasts.
+---
 
-The final design is up to you but your timeline app should attempt to arrange items in compact, space-efficient lanes.
-If event A ends before event B starts, these events can share a lane.
+## Tech Decisions
 
-The start and end dates will be formatted as `Date` objects. You don't need to worry about hours, minutes, seconds, or time zones.
+### Architecture
 
-You can assume every event's end date is the same or later than its start date.
+- **ViewModel-driven logic**  
+  All heavy calculations — section building, lane assignment, per-item height mapping, scroll sync
+  mapping — are in the ViewModel.
+- **UI as a “dumb view”**  
+  Composables just render state; no business logic in the UI layer.
 
-Avoid using libraries that solve too much of the problem. General purpose libraries are definitely okay, but a library that
-calculates the layout for a multi-lane timeline is not, for example.
+### Data Flow
 
-## Scaffolding:
+1. Input list of `Event(startDate, endDate, name)`
+2. **ViewModel**:
+    - Calculates timeline bounds
+    - Splits into month sections
+    - Assigns events to lanes
+    - Computes list item heights and cumulative offsets for scroll sync
+    - Applies background color per event
+3. **UI**:
+    - Renders rail (month/day headers) and plane (event blocks) as two synced `LazyColumn`s
+    - Applies horizontal scroll to plane
 
-We include a basic app here to get you started. This app contains basic classes you can use to display your timeline, and it runs out of the box.
-Please consider this as just a suggestion, and a way to help you get started.
-If you dislike any architectural decisions, you're completely free to change and modify this code however you see fit, or even start completely fresh.
+### Layout
 
-You can start writing your timeline code in the `TimelineScreen` class; it contains a TODO comment where you should display the data in swimlanes, as described above.
+- Left rail: Fixed width, sticky month headers, daily rows
+- Right pane: Month header + canvas with day grid and positioned event blocks
+- Vertical padding between events for clarity
 
-## Improvements:
+---
 
-After you have a basic read-only timeline app, here are some potential improvements to attempt as stretch goals:
+## Build & Run
 
-- Allow edits of the events.
-- Allow zooming in and out of the timeline.
-- Allow dragging and dropping to change the start date and/or end date for an event.
-- Any other polish or useful enhancements you can think of.
+**Requirements:**
 
-Include a README that covers:
+- Android Studio Koala+ (or compatible)
+- Kotlin 1.9+
+- Min SDK 24 (Java 8+ core library desugaring enabled for `LocalDate`)
 
-- How long you spent on the assignment.
-- What you like about your implementation.
-- What you would change if you were going to do it again.
-- How you made your design decisions. For example, if you looked at other timelines for inspiration, please note that.
-- How you would test this if you had more time.
-- Any special instructions on how to build/run your app.
+**Run:**
 
-What we're looking for:
+1. Clone the repository
+2. Open in Android Studio
+3. Sync Gradle
+4. Run on emulator or device
 
-- Clean, readable, maintainable code.
-- A sensible user experience and design for the final product.
+---
+
+## Sample Data
+
+To quickly preview the timeline, the ViewModel includes a `generateSampleEvents()` function that
+produces a realistic mix of short and long events across multiple months.
+
+```kotlin
+fun generateSampleEvents(): List<Event> {
+    val today = LocalDate.now()
+    return listOf(
+        Event(1, today.minusDays(2), today.plusDays(3), "Conference"),
+        Event(2, today.minusDays(10), today.minusDays(5), "Workshop"),
+        Event(3, today.plusDays(1), today.plusDays(1), "One-day Meeting"),
+        Event(4, today.plusDays(4), today.plusDays(15), "Research Sprint"),
+        Event(5, today.plusDays(20), today.plusDays(40), "Product Launch")
+    )
+}
+```
+
+## Time Spent
+
+~4 hours initial implementation + ~2 hours for refactor & cleanup.
+
+---
+
+## What I Like
+
+- Scroll sync between lists
+- Single-block events instead of daily slices
+- Modularized into domain, ViewModel, and UI layers
+- Clear separation of logic from UI
+- Easy to extend for zooming, drag & drop, or editing events
+
+---
+
+## If I Had More Time
+
+- Add pinch-to-zoom for lane widths
+- Allow event drag-and-drop to change dates
+- Animate event placement
+- Improve color palette accessibility (contrast for all durations)
+- Lane labeling or collapsing
+
+---
+
+## Inspirations
+
+- Google Calendar’s month-day list layout
+- Swimlane Gantt charts
+- Sticky header patterns from Jetpack Compose samples
